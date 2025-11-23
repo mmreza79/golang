@@ -17,18 +17,25 @@ func main() {
 
 	for {
 		select {
-		case <-ctx.Done(): // gracefully shutdown
+		case <-ctx.Done():
 			log.Printf("Context cancelled, exiting for loop")
+			return
+		case msg, ok := <-unbufCh:
+			if ok {
+				log.Printf("Received data from unbuffered channel :%s", msg)
+				continue
+			}
+			cancel()
 			return
 		default:
 			log.Printf("No data is receiving from channel")
-			time.Sleep(4 * time.Second)
+			time.Sleep(time.Second)
 		}
 	}
 }
 
 func channel(ch chan string, chName string) {
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		log.Printf("Generating value #%d for %s channel", i+1, chName)
 		ch <- fmt.Sprintf("value #%d", i+1)
 		log.Printf("Length of %s channel: %d", chName, len(ch))
